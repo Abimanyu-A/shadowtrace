@@ -18,7 +18,11 @@ def fake_login():
     ip = request.remote_addr
     ua = request.headers.get("User-Agent", "unknown")
 
-    payload = request.json or {}
+    try:
+        payload = request.get_json(force=True) or {}
+    except:
+        payload = {}
+
     header_dump = dict(request.headers)
 
     fingerprint = generate_fingerprint(ip, ua, header_dump)
