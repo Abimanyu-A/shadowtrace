@@ -1,6 +1,9 @@
 import hashlib
 import json
+import copy
 from datetime import datetime
+
+from app.db import collection
 
 LOG_FILE = "logs/attacks.log"
 
@@ -8,7 +11,14 @@ def log_event(data: dict):
     data["timestamp"] = datetime.utcnow().isoformat()
     with open(LOG_FILE, "a") as f:
         f.write(json.dumps(data) + "\n")
-
+        
+    if collection is not None:
+        try:
+            collection.insert_one(copy.deepcopy(data))
+        except Exception as e:
+            print("MongoDB Insert Error: ", e)
+            
+    print("HONEYPOT-EVENT: ", json.dumps(data))
 
 def hash_payload(payload: dict) -> str:
     """Generate a replay-detection hash."""
