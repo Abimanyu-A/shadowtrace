@@ -5,8 +5,8 @@ import os
 
 dashboard_bp = Blueprint("dashboard", __name__)
 
-ADMIN_USER = os.environ.get("ADMIN_USERNAME", "admin")
-ADMIN_PASS = os.environ.get("ADMIN_PASSWORD", "admin123")
+ADMIN_USER = os.environ.get("ADMIN_USERNAME")
+ADMIN_PASS = os.environ.get("ADMIN_PASSWORD")
 
 
 def check_auth(username, password):
