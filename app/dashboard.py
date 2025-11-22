@@ -1,5 +1,6 @@
 from flask import Blueprint, request, render_template, redirect, url_for
 from app.db import collection
+from bson import ObjectId
 import os
 
 dashboard_bp = Blueprint("dashboard", __name__)
@@ -53,7 +54,19 @@ def dashboard_home():
 
     logs = []
     if collection is not None:
-        logs = list(collection.find(query).sort("_id", -1).limit(200))
+        raw_logs = list(collection.find(query).sort("_id", -1).limit(200))
+
+        # Convert ObjectId → str for JSON serialization
+        def make_jsonable(doc):
+            new = {}
+            for k, v in doc.items():
+                if isinstance(v, ObjectId):
+                    new[k] = str(v)
+                else:
+                    new[k] = v
+            return new
+
+        logs = [make_jsonable(doc) for doc in raw_logs]
 
     return render_template(
         "dashboard.html",

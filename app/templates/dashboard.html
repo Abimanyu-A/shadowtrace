@@ -10,6 +10,7 @@
 <h1 class="text-3xl font-bold mb-6">ShadowTrace Attacker Dashboard</h1>
 
 <div class="overflow-x-auto rounded-xl border border-gray-700">
+
     <form method="GET" class="flex p-4 gap-4 mb-2">
 
         <input type="text"
@@ -33,6 +34,53 @@
         </a>
 
     </form>
+
+    <div id="map" class="w-full h-96 rounded-xl mb-4"></div>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+        crossorigin=""/>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+            crossorigin=""></script>
+
+    <script>
+    var map = L.map('map').setView([20, 0], 2);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18
+    }).addTo(map);
+
+    var logs = {{ logs | tojson }};
+
+    logs.forEach(log => {
+        if (log.geolocation?.loc) {
+            let coords = log.geolocation.loc.split(",");
+            if (coords.length !== 2) return;
+
+            let lat = parseFloat(coords[0]);
+            let lon = parseFloat(coords[1]);
+
+            if (!lat || !lon) return;
+            if (lat === 0 && lon === 0) return;
+
+            let marker = L.marker([lat, lon]).addTo(map);
+
+            let popupContent = `
+                <b>IP:</b> ${log.ip}<br>
+                <b>Location:</b> ${log.geolocation.city ?? "?"}, ${log.geolocation.country ?? "?"}<br>
+                <b>ISP:</b> ${log.geolocation.org ?? "?"}<br>
+                <b>Replay:</b> ${log.replay_detected ? "YES" : "NO"}<br>
+                <b>Timestamp:</b> ${log.timestamp}
+            `;
+
+            marker.bindPopup(popupContent);
+        }
+    });
+    </script>
+
     <table class="min-w-full text-left text-sm">
         <thead class="bg-gray-800">
             <tr>
