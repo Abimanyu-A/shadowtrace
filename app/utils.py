@@ -4,11 +4,16 @@ import copy
 from datetime import datetime
 
 from app.db import collection
+from app.geolocation import lookup_ip
 
 LOG_FILE = "logs/attacks.log"
 
 def log_event(data: dict):
     data["timestamp"] = datetime.utcnow().isoformat()
+    
+    geo = lookup_ip(data["ip"])
+    data["geolocation"] = geo
+    
     with open(LOG_FILE, "a") as f:
         f.write(json.dumps(data) + "\n")
         

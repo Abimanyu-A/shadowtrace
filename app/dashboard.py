@@ -38,6 +38,27 @@ def dashboard_home():
     if not is_authenticated():
         return redirect(url_for("dashboard.login"))
 
-    logs = list(collection.find().sort("_id", -1).limit(100)) if collection is not None else []
+    ip_query = request.args.get("ip")
+    fp_query = request.args.get("fingerprint")
 
-    return render_template("dashboard.html", logs=logs)
+    query = {}
+
+    # Filter by IP
+    if ip_query:
+        query["ip"] = {"$regex": ip_query, "$options": "i"}
+
+    # Filter by fingerprint
+    if fp_query:
+        query["fingerprint"] = {"$regex": fp_query, "$options": "i"}
+
+    logs = []
+    if collection is not None:
+        logs = list(collection.find(query).sort("_id", -1).limit(200))
+
+    return render_template(
+        "dashboard.html",
+        logs=logs,
+        ip_query=ip_query or "",
+        fp_query=fp_query or ""
+    )
+
