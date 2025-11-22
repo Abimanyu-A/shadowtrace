@@ -15,7 +15,11 @@ recent_payloads = set()
 
 @honeypot_bp.route("/api/login", methods=["POST"])
 def fake_login():
-    ip = request.remote_addr
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr)
+
+    if "," in ip:
+        ip = ip.split(",")[0].strip()
+        
     ua = request.headers.get("User-Agent", "unknown")
 
     try:
