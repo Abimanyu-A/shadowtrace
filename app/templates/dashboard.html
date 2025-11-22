@@ -129,5 +129,13 @@
 
 <p class="mt-4 text-gray-400 text-sm">Showing latest 100 records</p>
 
+<script>
+// Auto refresh every ten seconds
+setInterval(() => {
+    const params = new URLSearchParams(window.location.search);
+    window.location.href = "/dashboard?" + params.toString();
+}, 10000);
+</script>
+
 </body>
 </html>
