@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>ShadowTrace Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-900 text-gray-100 p-8">
+
+<h1 class="text-3xl font-bold mb-6">ShadowTrace Attacker Dashboard</h1>
+
+<div class="overflow-x-auto rounded-xl border border-gray-700">
+    <table class="min-w-full text-left text-sm">
+        <thead class="bg-gray-800">
+            <tr>
+                <th class="p-3">IP</th>
+                <th class="p-3">Fingerprint</th>
+                <th class="p-3">Replay</th>
+                <th class="p-3">Payload</th>
+                <th class="p-3">Timestamp</th>
+            </tr>
+        </thead>
+        <tbody>
+
+        {% for log in logs %}
+            <tr class="border-b border-gray-700 hover:bg-gray-800">
+                <td class="p-3">{{ log.ip }}</td>
+                <td class="p-3">{{ log.fingerprint }}</td>
+                <td class="p-3">
+                    {% if log.replay_detected %}
+                        <span class="text-red-400 font-bold">YES</span>
+                    {% else %}
+                        <span class="text-green-400 font-bold">NO</span>
+                    {% endif %}
+                </td>
+                <td class="p-3">{{ log.payload }}</td>
+                <td class="p-3">{{ log.timestamp }}</td>
+            </tr>
+        {% endfor %}
+
+        </tbody>
+    </table>
+</div>
+
+<p class="mt-4 text-gray-400 text-sm">Showing latest 100 records</p>
+
+</body>
+</html>
