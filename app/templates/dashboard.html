@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>ShadowTrace Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-900 text-gray-100 p-8">
+
+<h1 class="text-3xl font-bold mb-6">ShadowTrace Attacker Dashboard</h1>
+
+<div class="overflow-x-auto rounded-xl border border-gray-700">
+
+    <form method="GET" class="flex p-4 gap-4 mb-2">
+
+        <input type="text"
+            name="ip"
+            value="{{ ip_query }}"
+            placeholder="Filter by IP"
+            class="p-2 bg-gray-800 rounded-lg border border-gray-700 w-64">
+
+        <input type="text"
+            name="fingerprint"
+            value="{{ fp_query }}"
+            placeholder="Filter by Fingerprint"
+            class="p-2 bg-gray-800 rounded-lg border border-gray-700 w-80">
+
+        <button class="bg-blue-600 px-4 py-2 rounded hover:bg-blue-500">
+            Filter
+        </button>
+
+        <a href="/dashboard" class="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600">
+            Clear
+        </a>
+
+    </form>
+
+    <div id="map" class="w-full h-96 rounded-xl mb-4"></div>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+        crossorigin=""/>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+            crossorigin=""></script>
+
+    <script>
+    var map = L.map('map').setView([20, 0], 2);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18
+    }).addTo(map);
+
+    var logs = {{ logs | tojson }};
+
+    logs.forEach(log => {
+        if (log.geolocation?.loc) {
+            let coords = log.geolocation.loc.split(",");
+            if (coords.length !== 2) return;
+
+            let lat = parseFloat(coords[0]);
+            let lon = parseFloat(coords[1]);
+
+            if (!lat || !lon) return;
+            if (lat === 0 && lon === 0) return;
+
+            let marker = L.marker([lat, lon]).addTo(map);
+
+            let popupContent = `
+                <b>IP:</b> ${log.ip}<br>
+                <b>Location:</b> ${log.geolocation.city ?? "?"}, ${log.geolocation.country ?? "?"}<br>
+                <b>ISP:</b> ${log.geolocation.org ?? "?"}<br>
+                <b>Replay:</b> ${log.replay_detected ? "YES" : "NO"}<br>
+                <b>Timestamp:</b> ${log.timestamp}
+            `;
+
+            marker.bindPopup(popupContent);
+        }
+    });
+    </script>
+
+    <table class="min-w-full text-left text-sm">
+        <thead class="bg-gray-800">
+            <tr>
+                <th class="p-3">IP</th>
+                <th class="p-3">Location</th>
+                <th class="p-3">ISP</th>
+                <th class="p-3">Fingerprint</th>
+                <th class="p-3">Replay</th>
+                <th class="p-3">Payload</th>
+                <th class="p-3">Timestamp</th>
+            </tr>
+        </thead>
+        <tbody>
+
+        {% for log in logs %}
+            <tr class="border-b border-gray-700 hover:bg-gray-800">
+                <td class="p-3">{{ log.ip }}</td>
+
+                <td class="p-3">
+                    {{ log.geolocation.city }}, {{ log.geolocation.country }}
+                </td>
+
+                <td class="p-3">
+                    {{ log.geolocation.org }}
+                </td>
+
+                <td class="p-3">{{ log.fingerprint }}</td>
+
+                <td class="p-3">
+                    {% if log.replay_detected %}
+                        <span class="text-red-400 font-bold">YES</span>
+                    {% else %}
+                        <span class="text-green-400 font-bold">NO</span>
+                    {% endif %}
+                </td>
+
+                <td class="p-3">{{ log.payload }}</td>
+
+                <td class="p-3">{{ log.timestamp }}</td>
+            </tr>
+        {% endfor %}
+
+        </tbody>
+    </table>
+</div>
+
+<p class="mt-4 text-gray-400 text-sm">Showing latest 100 records</p>
+
+<script>
+// Auto refresh every ten seconds
+setInterval(() => {
+    const params = new URLSearchParams(window.location.search);
+    window.location.href = "/dashboard?" + params.toString();
+}, 10000);
+</script>
+
+</body>
+</html>

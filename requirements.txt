@@ -1,0 +1,8 @@
+Flask
+PyJWT
+user-agents
+gunicorn
+pymongo
+dnspython
+python-dotenv
+requests
